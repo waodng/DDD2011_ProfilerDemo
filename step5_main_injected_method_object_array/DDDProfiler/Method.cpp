@@ -59,13 +59,13 @@ void Method::WriteMethod(IMAGE_COR_ILMETHOD* pMethod)
 {
     BYTE* pCode;
     COR_ILMETHOD_FAT* fatImage = (COR_ILMETHOD_FAT*)&pMethod->Fat;
-    
+
     m_header.Flags &= ~CorILMethod_MoreSects;
     if (m_exceptions.size() > 0)
     {
         m_header.Flags |= CorILMethod_MoreSects;
     }
-    
+
     memcpy(fatImage, &m_header, m_header.Size * sizeof(DWORD));
 
     pCode = fatImage->GetCode();
@@ -89,24 +89,24 @@ void Method::WriteMethod(IMAGE_COR_ILMETHOD* pMethod)
             Write<BYTE>(details.op2);
         }
 
-        switch(details.operandSize)
+        switch (details.operandSize)
         {
-        case Null:
-            break;
-        case Byte:
-            Write<BYTE>((BYTE)(*it)->m_operand);
-            break;
-        case Word:
-            Write<USHORT>((USHORT)(*it)->m_operand);
-            break;
-        case Dword:
-            Write<ULONG>((ULONG)(*it)->m_operand);
-            break;
-        case Qword:
-            Write<ULONGLONG>((*it)->m_operand);
-            break;
-        default:
-            break;
+            case Null:
+                break;
+            case Byte:
+                Write<BYTE>((BYTE)(*it)->m_operand);
+                break;
+            case Word:
+                Write<USHORT>((USHORT)(*it)->m_operand);
+                break;
+            case Dword:
+                Write<ULONG>((ULONG)(*it)->m_operand);
+                break;
+            case Qword:
+                Write<ULONGLONG>((*it)->m_operand);
+                break;
+            default:
+                break;
         }
 
         if ((*it)->m_operation == CEE_SWITCH)
@@ -142,12 +142,12 @@ void Method::WriteSections()
 
             switch ((*it)->m_handlerType)
             {
-            case COR_ILEXCEPTION_CLAUSE_FILTER:
-                Write<long>((*it)->m_filterStart->m_offset);
-                break;
-            default:
-                Write<ULONG>((*it)->m_token);
-                break;
+                case COR_ILEXCEPTION_CLAUSE_FILTER:
+                    Write<long>((*it)->m_filterStart->m_offset);
+                    break;
+                default:
+                    Write<ULONG>((*it)->m_token);
+                    break;
             }
         }
     }
@@ -168,33 +168,33 @@ void Method::ReadBody()
         BYTE op2 = Read<BYTE>();
         switch (op2)
         {
-        case STP1:
-            op1 = STP1;
-            op2 = Read<BYTE>();
-            break;
-        default: 
-            break;
+            case STP1:
+                op1 = STP1;
+                op2 = Read<BYTE>();
+                break;
+            default: 
+                break;
         }
         OperationDetails &details = Operations::m_mapOpsOperationDetails[MAKEWORD(op1, op2)];
         pInstruction->m_operation = details.canonicalName;
         switch(details.operandSize)
         {
-        case Null:
-            break;
-        case Byte:
-            pInstruction->m_operand = Read<BYTE>();
-            break;
-        case Word:
-            pInstruction->m_operand = Read<USHORT>();
-            break;
-        case Dword:
-            pInstruction->m_operand = Read<ULONG>();
-            break;
-        case Qword:
-            pInstruction->m_operand = Read<ULONGLONG>();
-            break;
-        default:
-            break;
+            case Null:
+                break;
+            case Byte:
+                pInstruction->m_operand = Read<BYTE>();
+                break;
+            case Word:
+                pInstruction->m_operand = Read<USHORT>();
+                break;
+            case Dword:
+                pInstruction->m_operand = Read<ULONG>();
+                break;
+            case Qword:
+                pInstruction->m_operand = Read<ULONGLONG>();
+                break;
+            default:
+                break;
         }
 
         // are we a branch or a switch
@@ -225,14 +225,16 @@ void Method::ReadBody()
 
     SetBuffer(NULL); 
 
+    ATLTRACE(_T("Original IL"));
     DumpIL();
 
     ResolveBranches();
-    
+
     ConvertShortBranches();
 
     RecalculateOffsets();
 
+    ATLTRACE(_T("After conversions (ResolveBranches, ConvertShortBranches & RecalculateOffsets)"));
     DumpIL();
 }
 
@@ -263,12 +265,12 @@ void Method::ReadSections()
                     ULONG token = 0;
                     switch (type)
                     {
-                    case COR_ILEXCEPTION_CLAUSE_FILTER:
-                        filterStart = Read<long>();
-                        break;
-                    default:
-                        token = Read<ULONG>();
-                        break;
+                        case COR_ILEXCEPTION_CLAUSE_FILTER:
+                            filterStart = Read<long>();
+                            break;
+                        default:
+                            token = Read<ULONG>();
+                            break;
                     }
                     ExceptionHandler * pSection = new ExceptionHandler();
                     pSection->m_handlerType = type;
@@ -300,12 +302,12 @@ void Method::ReadSections()
                     ULONG token = 0;
                     switch (type)
                     {
-                    case COR_ILEXCEPTION_CLAUSE_FILTER:
-                        filterStart = Read<long>();
-                        break;
-                    default:
-                        token = Read<ULONG>();
-                        break;
+                        case COR_ILEXCEPTION_CLAUSE_FILTER:
+                            filterStart = Read<long>();
+                            break;
+                        default:
+                            token = Read<ULONG>();
+                            break;
                     }
                     ExceptionHandler * pSection = new ExceptionHandler();
                     pSection->m_handlerType = type;
@@ -431,20 +433,20 @@ void Method::DumpIL()
         OperationDetails &details = Operations::m_mapNameOperationDetails[(*it)->m_operation];
         if (details.operandSize == Null)
         {
-            ATLTRACE(_T("IL_%04X %s"), (*it)->m_offset, details.stringName);
+			ATLTRACE(_T("IL_%04X (%i) %s"), (*it)->m_offset, (*it)->m_offset, details.stringName);
         }
         else
         {
             if (details.operandParam == ShortInlineBrTarget || details.operandParam == InlineBrTarget)
             {
                 long offset = (*it)->m_offset + (*it)->m_branchOffsets[0] + details.length + details.operandSize;
-                ATLTRACE(_T("IL_%04X %s IL_%04X"), 
-                    (*it)->m_offset, details.stringName, offset);
+				ATLTRACE(_T("IL_%04X (%i) %s IL_%04X"), (*it)->m_offset, (*it)->m_offset, details.stringName, offset);
             }
             else if (details.operandParam == InlineMethod || details.operandParam == InlineString)
             {
-                ATLTRACE(_T("IL_%04X %s (%02X)%02X%02X%02X"), 
-                    (*it)->m_offset, details.stringName, 
+                ATLTRACE(_T("IL_%04X (%i) %s (%02X)%02X%02X%02X"), 
+					(*it)->m_offset, (*it)->m_offset, 
+					details.stringName,
                     (BYTE)((*it)->m_operand >> 24),
                     (BYTE)((*it)->m_operand >> 16),
                     (BYTE)((*it)->m_operand >> 8),
@@ -452,24 +454,25 @@ void Method::DumpIL()
             }
             else if (details.operandSize == Byte)
             {
-                ATLTRACE(_T("IL_%04X %s %02X"), 
-                    (*it)->m_offset, details.stringName, (*it)->m_operand);
+                ATLTRACE(_T("IL_%04X (%i) %s %02X"), 
+					(*it)->m_offset, (*it)->m_offset, details.stringName, (*it)->m_operand);
             }
             else if (details.operandSize == Word)
             {
-                ATLTRACE(_T("IL_%04X %s %04X"), 
-                    (*it)->m_offset, details.stringName, (*it)->m_operand);
+                ATLTRACE(_T("IL_%04X (%i) %s %04X"), 
+					(*it)->m_offset, (*it)->m_offset, details.stringName, (*it)->m_operand);
             }
             else if (details.operandSize == Dword)
             {
-                ATLTRACE(_T("IL_%04X %s %08X"), 
-                    (*it)->m_offset, details.stringName, (*it)->m_operand);
+                ATLTRACE(_T("IL_%04X (%i) %s %08X"), 
+					(*it)->m_offset, (*it)->m_offset, details.stringName, (*it)->m_operand);
             }
             else
             {
-                ATLTRACE(_T("IL_%04X %s %X"), (*it)->m_offset, details.stringName, (*it)->m_operand);
+				ATLTRACE(_T("IL_%04X (%i) %s %X"), (*it)->m_offset, (*it)->m_offset, details.stringName, (*it)->m_operand);
             }
         }
+
         for (std::vector<long>::iterator offsetIter = (*it)->m_branchOffsets.begin(); offsetIter != (*it)->m_branchOffsets.end() ; offsetIter++)
         {
             if ((*it)->m_operation == CEE_SWITCH)
@@ -511,50 +514,50 @@ void Method::ConvertShortBranches()
             CanonicalName newOperation = (*it)->m_operation;
             switch((*it)->m_operation)
             {
-            case CEE_BR_S:
-                newOperation = CEE_BR;
-                break;
-            case CEE_BRFALSE_S:
-                newOperation = CEE_BRFALSE;
-                break;
-            case CEE_BRTRUE_S:
-                newOperation = CEE_BRTRUE;
-                break;
-            case CEE_BEQ_S:
-                newOperation = CEE_BEQ;
-                break;
-            case CEE_BGE_S:
-                newOperation = CEE_BGE;
-                break;
-            case CEE_BGT_S:
-                newOperation = CEE_BGT;
-                break;
-            case CEE_BLE_S:
-                newOperation = CEE_BLE;
-                break;
-            case CEE_BLT_S:
-                newOperation = CEE_BLT;
-                break;
-            case CEE_BNE_UN_S:
-                newOperation = CEE_BNE_UN;
-                break;
-            case CEE_BGE_UN_S:
-                newOperation = CEE_BGE_UN;
-                break;
-            case CEE_BGT_UN_S:
-                newOperation = CEE_BGT_UN;
-                break;
-            case CEE_BLE_UN_S:
-                newOperation = CEE_BLE_UN;
-                break;
-            case CEE_BLT_UN_S:
-                newOperation = CEE_BLT_UN;
-                break;
-            case CEE_LEAVE_S:
-                newOperation = CEE_LEAVE;
-                break;
-            default:
-                break;
+                case CEE_BR_S:
+                    newOperation = CEE_BR;
+                    break;
+                case CEE_BRFALSE_S:
+                    newOperation = CEE_BRFALSE;
+                    break;
+                case CEE_BRTRUE_S:
+                    newOperation = CEE_BRTRUE;
+                    break;
+                case CEE_BEQ_S:
+                    newOperation = CEE_BEQ;
+                    break;
+                case CEE_BGE_S:
+                    newOperation = CEE_BGE;
+                    break;
+                case CEE_BGT_S:
+                    newOperation = CEE_BGT;
+                    break;
+                case CEE_BLE_S:
+                    newOperation = CEE_BLE;
+                    break;
+                case CEE_BLT_S:
+                    newOperation = CEE_BLT;
+                    break;
+                case CEE_BNE_UN_S:
+                    newOperation = CEE_BNE_UN;
+                    break;
+                case CEE_BGE_UN_S:
+                    newOperation = CEE_BGE_UN;
+                    break;
+                case CEE_BGT_UN_S:
+                    newOperation = CEE_BGT_UN;
+                    break;
+                case CEE_BLE_UN_S:
+                    newOperation = CEE_BLE_UN;
+                    break;
+                case CEE_BLT_UN_S:
+                    newOperation = CEE_BLT_UN;
+                    break;
+                case CEE_LEAVE_S:
+                    newOperation = CEE_LEAVE;
+                    break;
+                default:
+                    break;
             }
             (*it)->m_operation = newOperation;
             (*it)->m_operand = UNSAFE_BRANCH_OPERAND;
@@ -589,7 +592,7 @@ void Method::RecalculateOffsets()
             (*it)->m_branchOffsets.clear();
             if((*it)->m_operation == CEE_SWITCH)
             {
-                long offset = ((*it)->m_offset + details.length + details.operandSize + (4*(long)(*it)->m_operand));                    
+                long offset = ((*it)->m_offset + details.length + details.operandSize + (4*(long)(*it)->m_operand));
                 for (InstructionListIter bit = (*it)->m_branches.begin(); bit != (*it)->m_branches.end(); ++bit)
                 {
                     (*it)->m_branchOffsets.push_back((*bit)->m_offset - offset);
@@ -605,7 +608,7 @@ void Method::RecalculateOffsets()
 }
 
 /// <summary>Calculates the size of the method which include the header size, 
-/// the code size and the (aligned) creitical sections if they exist. Use this
+/// the code size and the (aligned) critical sections if they exist. Use this
 /// to get the size required for allocating memory.</summary>
 /// <returns>The size of the method.</returns>
 /// <remarks>It is recomended that <c>RecalculateOffsets</c> should be called 
@@ -646,7 +649,7 @@ void Method::InsertSequenceInstructionsAtOffset(long offset, InstructionList &in
     for (InstructionListIter it = m_instructions.begin(); it != m_instructions.end(); ++it)
     {
         if ((*it)->m_origOffset == offset)
-        {            
+        {
             Instruction orig = *(*it);
             for (unsigned int i=0;i<instructions.size();i++)
             {
@@ -679,7 +682,7 @@ void Method::InsertSequenceInstructionsAtOriginalOffset(long offset, Instruction
         }
     } 
 
-    if (!DoesTryHandlerPointToOffset (actualOffset))
+    if (!DoesTryHandlerPointToOffset(actualOffset))
     {
         for (InstructionListIter it = m_instructions.begin(); it != m_instructions.end(); ++it)
         {
@@ -696,6 +699,7 @@ void Method::InsertSequenceInstructionsAtOriginalOffset(long offset, Instruction
             }
         }
     }
+
     RecalculateOffsets();
     return;
 }
@@ -740,4 +744,3 @@ void Method::PopulateILMap(ULONG mapSize, COR_IL_MAP* maps)
         }
     }
 }
-

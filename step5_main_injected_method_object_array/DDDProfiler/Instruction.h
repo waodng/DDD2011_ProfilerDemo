@@ -17,16 +17,17 @@ class Instruction
 public:
     Instruction(CanonicalName operation, ULONGLONG operand);
     Instruction(CanonicalName operation);
+    Instruction(CanonicalName operation, Instruction *branchLocation);
     ~Instruction(void);
 protected:
     Instruction(void);
     Instruction& operator = (const Instruction& b);
 
-#ifdef TEST_FRAMEWORK
+//#ifdef TEST_FRAMEWORK
 public:
-#else
-private:
-#endif
+//#else
+//private:
+//#endif
     long m_offset;
     CanonicalName m_operation;
     ULONGLONG m_operand;
@@ -41,5 +42,3 @@ public:
 
     friend class Method;
 };
-
-

@@ -28,6 +28,19 @@ Instruction::Instruction(CanonicalName operation)
     m_origOffset = -1;
 }
 
+Instruction::Instruction(CanonicalName operation, Instruction *branchLocation)
+{
+    m_operation = operation;
+    m_operand = 0;
+    m_offset = -1;
+    m_isBranch = true;
+    m_origOffset = -1;
+    // Seems like we can just push 0 here, it's the m_branches that gets used?!?! 
+    // But if we don't add it something to m_branchOffsets, it'll throw an exception!!!
+    m_branchOffsets.push_back(0);
+    m_branches.push_back(branchLocation);
+}
+
 Instruction::~Instruction(void)
 {
 }

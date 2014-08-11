@@ -42,16 +42,23 @@ END_COM_MAP()
 
 private:
     CComQIPtr<ICorProfilerInfo3> m_profilerInfo3;
+    mdMemberRef m_targetMethodRefLog;
+    mdMemberRef m_targetMethodRefLogAfter;
+    mdMemberRef m_targetMethodRefMocked;
+    mdMemberRef m_targetMethodRefShouldMock;
+    mdTypeRef m_objectTypeRef;
+
     std::wstring GetMethodName(FunctionID functionId, ModuleID& moduleId, mdToken& funcToken);
-    mdMemberRef m_targetMethodRef;
     HRESULT GetInjectedRef(ModuleID moduleId, mdModuleRef &mscorlibRef);
     HRESULT GetMsCorlibRef(ModuleID moduleId, mdModuleRef &mscorlibRef);
-    mdTypeRef m_objectTypeRef;
+
+    HRESULT STDMETHODCALLTYPE AddLoggingToMethod(ModuleID moduleId, FunctionID functionId, mdToken funcToken);
+	HRESULT STDMETHODCALLTYPE AddMockingToMethod(ModuleID moduleId, FunctionID functionId, mdToken funcToken, std::wstring methodName);
 public:
     virtual HRESULT STDMETHODCALLTYPE Initialize( 
         /* [in] */ IUnknown *pICorProfilerInfoUnk);
         
-    virtual HRESULT STDMETHODCALLTYPE Shutdown( void);
+    virtual HRESULT STDMETHODCALLTYPE Shutdown(void);
 
     virtual HRESULT STDMETHODCALLTYPE ModuleAttachedToAssembly( 
         /* [in] */ ModuleID moduleId,
@@ -60,8 +67,6 @@ public:
     virtual HRESULT STDMETHODCALLTYPE JITCompilationStarted( 
         /* [in] */ FunctionID functionId,
         /* [in] */ BOOL fIsSafeToBlock);
-
-
 };
 
 OBJECT_ENTRY_AUTO(__uuidof(CodeInjection), CCodeInjection)

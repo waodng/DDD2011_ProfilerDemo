@@ -1,9 +1,14 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "DDDProfiler", "DDDProfiler\DDDProfiler.vcxproj", "{4433C836-63ED-47B5-ABD4-192945EF2AFA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProfilerHost", "ProfilerHost\ProfilerHost.csproj", "{70125EF7-1BBA-4508-8900-1D176D725368}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4433C836-63ED-47B5-ABD4-192945EF2AFA} = {4433C836-63ED-47B5-ABD4-192945EF2AFA}
+		{7ADB7181-7442-4115-9E92-F703A0357C56} = {7ADB7181-7442-4115-9E92-F703A0357C56}
+		{82F88AB6-1CF9-4C5F-A711-AD298FC2BD6F} = {82F88AB6-1CF9-4C5F-A711-AD298FC2BD6F}
+	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProfilerTarget", "ProfilerTarget\ProfilerTarget.csproj", "{7ADB7181-7442-4115-9E92-F703A0357C56}"
 EndProject

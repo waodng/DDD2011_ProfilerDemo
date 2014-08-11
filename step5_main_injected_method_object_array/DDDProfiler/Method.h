@@ -44,16 +44,11 @@ public:
     // all instrumented methods will be FAT (with FAT SECTIONS if exist) regardless
     IMAGE_COR_ILMETHOD_FAT m_header;
 
-#ifdef TEST_FRAMEWORK
+//#ifdef TEST_FRAMEWORK
 public:
-#else
-private:
-#endif
+//#else
+//private:
+//#endif
     ExceptionHandlerList m_exceptions;
     InstructionList m_instructions;
-
 };
-
- 
- 
-
