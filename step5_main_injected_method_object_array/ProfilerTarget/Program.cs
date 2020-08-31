@@ -30,6 +30,8 @@ namespace ProfilerTarget
             result = ClassToMock.StaticMethodToMock();
             Console.WriteLine("Result: " + result);
             Console.WriteLine(new string('#', 90) + "\n");
+
+            Console.Read();
         }
 
         static void OnMethodToInstrument(object sender, EventArgs e)
