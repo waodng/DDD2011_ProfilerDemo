@@ -3,11 +3,11 @@
 /* this ALWAYS GENERATED file contains the definitions for the interfaces */
 
 
- /* File created by MIDL compiler version 7.00.0555 */
-/* at Sat May 21 10:57:42 2011
+ /* File created by MIDL compiler version 8.00.0603 */
+/* at Tue Sep 01 10:54:53 2020
  */
 /* Compiler settings for DDDProfiler.idl:
-    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 7.00.0555 
+    Oicf, W1, Zp8, env=Win32 (32b run), target_arch=X86 8.00.0603 
     protocol : dce , ms_ext, c_ext, robust
     error checks: allocation ref bounds_check enum stub_data 
     VC __declspec() decoration level: 
@@ -48,6 +48,7 @@
 #ifndef __ICodeInjection_FWD_DEFINED__
 #define __ICodeInjection_FWD_DEFINED__
 typedef interface ICodeInjection ICodeInjection;
+
 #endif 	/* __ICodeInjection_FWD_DEFINED__ */
 
 
@@ -89,6 +90,7 @@ EXTERN_C const IID IID_ICodeInjection;
     public:
     };
     
+    
 #else 	/* C style interface */
 
     typedef struct ICodeInjectionVtbl
@@ -99,7 +101,7 @@ EXTERN_C const IID IID_ICodeInjection;
             ICodeInjection * This,
             /* [in] */ REFIID riid,
             /* [annotation][iid_is][out] */ 
-            __RPC__deref_out  void **ppvObject);
+            _COM_Outptr_  void **ppvObject);
         
         ULONG ( STDMETHODCALLTYPE *AddRef )( 
             ICodeInjection * This);

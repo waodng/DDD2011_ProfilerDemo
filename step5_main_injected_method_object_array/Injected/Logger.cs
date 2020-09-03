@@ -26,8 +26,8 @@ namespace Injected
             if (e == null) return;
             if (source == null) return;
 
-            Console.WriteLine(string.Format("[Injected] source: {0}", source.ToString()));
-            Console.WriteLine(string.Format("[Injected] e: {0}", e.ToString()));
+            Console.WriteLine(string.Format("[注入开始] 方法: {0}", source.ToString()));
+            Console.WriteLine(string.Format("[注入开始] e: {0}", e.ToString()));
             if (timer == null)
                 timer = new Stopwatch();
             timer.Restart();
@@ -39,7 +39,7 @@ namespace Injected
         public static void LogAfter()
         {
             timer.Stop();
-            Console.WriteLine(string.Format("[Injected] took {0:0.00} ms ({1})", timer.Elapsed.TotalMilliseconds, timer.Elapsed));
+            Console.WriteLine(string.Format("[注入结束] took {0:0.00} ms ({1})", timer.Elapsed.TotalMilliseconds, timer.Elapsed));
         }
 
         /// <summary>

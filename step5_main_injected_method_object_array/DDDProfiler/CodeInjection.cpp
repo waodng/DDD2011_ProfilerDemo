@@ -214,7 +214,13 @@ HRESULT STDMETHODCALLTYPE CCodeInjection::JITCompilationStarted(
         HRESULT status = AddMockingToMethod(moduleId, functionId, funcToken, methodName);
         if (status != S_OK)
             return status;
-    }
+    }//自定义测试sayHello方法注入日志
+	else if (L"ProfilerTarget.InjectTest.SayHello" == methodName && m_targetMethodRefLog != 0 && m_targetMethodRefLogAfter != 0)
+	{
+		HRESULT status = AddLogToMethod(moduleId, functionId, funcToken);
+		if (status != S_OK)
+			return status;
+	}
 
     return S_OK;
 }
@@ -391,4 +397,90 @@ HRESULT STDMETHODCALLTYPE CCodeInjection::AddLoggingToMethod(ModuleID moduleId, 
     CoTaskMemFree(pMap);
 
     return S_OK;
+}
+
+//自定义添加日志方法到方法中
+
+HRESULT STDMETHODCALLTYPE CCodeInjection::AddLogToMethod(ModuleID moduleId, FunctionID functionId, mdToken funcToken)
+{
+	// get method body
+	LPCBYTE pMethodHeader = NULL;
+	ULONG iMethodSize = 0;
+	COM_FAIL_RETURN(m_profilerInfo3->GetILFunctionBody(moduleId, funcToken, &pMethodHeader, &iMethodSize), S_OK);
+
+	CComPtr<IMetaDataEmit> metaDataEmit;
+	COM_FAIL_RETURN(m_profilerInfo3->GetModuleMetaData(moduleId, ofRead | ofWrite, IID_IMetaDataEmit, (IUnknown**)&metaDataEmit), S_OK);
+
+	// parse IL
+	Method instMethod((IMAGE_COR_ILMETHOD*)pMethodHeader); // <--
+	instMethod.SetMinimumStackSize(3); // should be correct for this sample
+
+	// NOTE: build signature (in the knowledge that the method we are instrumenting currently has no local vars)
+	static COR_SIGNATURE localSignature[] =
+	{
+		IMAGE_CEE_CS_CALLCONV_LOCAL_SIG,
+		0x02,
+		ELEMENT_TYPE_ARRAY, ELEMENT_TYPE_OBJECT, 01, 00, 00,
+		ELEMENT_TYPE_ARRAY, ELEMENT_TYPE_OBJECT, 01, 00, 00
+	};
+
+	mdSignature signature;
+	COM_FAIL_RETURN(metaDataEmit->GetTokenFromSig(localSignature, sizeof(localSignature), &signature), S_OK);
+	instMethod.m_header.LocalVarSigTok = signature;
+
+	// insert new IL block
+	InstructionList instructions; // NOTE: this IL will be different for an instance method or if the local vars signature is different
+	// Signature of the method we are instrumenting "static void OnMethodToInstrument(object sender, EventArgs e)"
+	instructions.push_back(new Instruction(CEE_NOP));
+	instructions.push_back(new Instruction(CEE_LDC_I4_2));
+	instructions.push_back(new Instruction(CEE_NEWARR, m_objectTypeRef)); // var paramaters = new Object[2] { sender, e };
+	instructions.push_back(new Instruction(CEE_STLOC_1));
+	instructions.push_back(new Instruction(CEE_LDLOC_1));
+	instructions.push_back(new Instruction(CEE_LDC_I4_0));
+	instructions.push_back(new Instruction(CEE_LDARG_0));                 // push local arg0 onto the stack ("sender")
+	instructions.push_back(new Instruction(CEE_STELEM_REF));              // store "sender" in parameters array[0]
+	instructions.push_back(new Instruction(CEE_LDLOC_1));
+	instructions.push_back(new Instruction(CEE_LDC_I4_1));
+	instructions.push_back(new Instruction(CEE_LDARG_1));                 // push local arg1 onto the stack ("e")
+	instructions.push_back(new Instruction(CEE_STELEM_REF));              // store "e" in parameters array[1]
+	instructions.push_back(new Instruction(CEE_LDLOC_1));
+	instructions.push_back(new Instruction(CEE_STLOC_0));
+	instructions.push_back(new Instruction(CEE_LDLOC_0));
+	instructions.push_back(new Instruction(CEE_CALL, m_targetMethodRefLog)); // call Injected.Logger.Log(parameters)
+
+	instMethod.InsertSequenceInstructionsAtOriginalOffset(0, instructions);
+
+	ATLTRACE(_T("Re-written IL (AddLoggingToMethod, before adding call to Logger.LogAfter())"));
+	instMethod.DumpIL();
+
+	InstructionList afterInstructions;
+	afterInstructions.push_back(new Instruction(CEE_CALL, m_targetMethodRefLogAfter)); // call Injected.Logger.LogAfter()
+	//afterInstructions.push_back(new Instruction(CEE_NOP)); Do we need this??
+
+	Instruction* lastButOneInst = instMethod.m_instructions.at(instMethod.m_instructions.size() - 2);
+	ATLTRACE(_T("lastButOneInst->m_offset %i "), lastButOneInst->m_offset, lastButOneInst);
+
+	instMethod.InsertSequenceInstructionsAtOffset(lastButOneInst->m_offset, afterInstructions);
+
+	ATLTRACE(_T("Re-written IL (AddLoggingToMethod)"));
+	instMethod.DumpIL();
+
+	// allocate memory
+	CComPtr<IMethodMalloc> methodMalloc;
+	COM_FAIL_RETURN(m_profilerInfo3->GetILFunctionBodyAllocator(moduleId, &methodMalloc), S_OK);
+	void* pNewMethod = methodMalloc->Alloc(instMethod.GetMethodSize());
+
+	// write new method
+	instMethod.WriteMethod((IMAGE_COR_ILMETHOD*)pNewMethod);
+	COM_FAIL_RETURN(m_profilerInfo3->SetILFunctionBody(moduleId, funcToken, (LPCBYTE)pNewMethod), S_OK);
+
+	// update IL maps
+	ULONG mapSize = instMethod.GetILMapSize();
+	void* pMap = CoTaskMemAlloc(mapSize * sizeof(COR_IL_MAP));
+	instMethod.PopulateILMap(mapSize, (COR_IL_MAP*)pMap);
+
+	COM_FAIL_RETURN(m_profilerInfo3->SetILInstrumentedCodeMap(functionId, TRUE, mapSize, (COR_IL_MAP*)pMap), S_OK);
+	CoTaskMemFree(pMap);
+
+	return S_OK;
 }

@@ -14,7 +14,6 @@ namespace ProfilerHost
 #else
             Console.WriteLine("RELEASE mode\n");
 #endif
-
             var currentDirectory = Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location);
             Console.WriteLine("Executing Assembly:\n{0}\n", Assembly.GetExecutingAssembly().Location);
             Console.WriteLine("Current directory:\n{0}\n", currentDirectory);
@@ -34,6 +33,7 @@ namespace ProfilerHost
             startInfo.EnvironmentVariables.Add("Cor_Enable_Profiling", "1");
             startInfo.UseShellExecute = false;
 
+           
             Console.WriteLine("Launching:\n{0}\n", startInfo.FileName);
             var process = Process.Start(startInfo);
             process.WaitForExit();

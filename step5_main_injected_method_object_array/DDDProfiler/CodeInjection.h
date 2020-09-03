@@ -52,6 +52,7 @@ private:
     HRESULT GetInjectedRef(ModuleID moduleId, mdModuleRef &mscorlibRef);
     HRESULT GetMsCorlibRef(ModuleID moduleId, mdModuleRef &mscorlibRef);
 
+	HRESULT STDMETHODCALLTYPE AddLogToMethod(ModuleID moduleId, FunctionID functionId, mdToken funcToken);
     HRESULT STDMETHODCALLTYPE AddLoggingToMethod(ModuleID moduleId, FunctionID functionId, mdToken funcToken);
 	HRESULT STDMETHODCALLTYPE AddMockingToMethod(ModuleID moduleId, FunctionID functionId, mdToken funcToken, std::wstring methodName);
 public:

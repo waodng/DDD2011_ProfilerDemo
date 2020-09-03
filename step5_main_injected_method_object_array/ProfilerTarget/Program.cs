@@ -1,5 +1,6 @@
 ﻿using Injected;
 using System;
+using System.Diagnostics;
 
 namespace ProfilerTarget
 {
@@ -31,6 +32,11 @@ namespace ProfilerTarget
             Console.WriteLine("Result: " + result);
             Console.WriteLine(new string('#', 90) + "\n");
 
+            Console.WriteLine(new string('=', 20) + "测试注入--开始" + new string('=', 20));
+
+            InjectTest.SayHello("waodng",new EventArgs());
+
+            Console.WriteLine(new string('=', 20) + "测试注入--结束" + new string('=', 20));
             Console.Read();
         }
 

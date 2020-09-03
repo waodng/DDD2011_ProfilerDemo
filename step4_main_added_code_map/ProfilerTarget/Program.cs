@@ -18,6 +18,7 @@ namespace ProfilerTarget
                 Console.WriteLine("Caught exception of type {0}",
                     e.GetType().FullName);
             }
+            Console.Read();
         }
 
         static void TargetMethod(int i)
